@@ -1,0 +1,14 @@
+model Movie {
+  id String @id @default(uuid(7)) @db.Uuid
+  title String
+  overview String
+  releaseYear Int
+  runtime Int?
+  posterUrl String
+  backdropUrl String?
+  popularity Float
+  createdAt DateTime @default(now())
+
+  genres Genre[]
+  actors Actor[]
+}

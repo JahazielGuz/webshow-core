@@ -1,0 +1,7 @@
+model Genre {
+  id String @id @default(uuid(7)) @db.Uuid
+  name String
+  slug String @unique
+
+  movies Movie[]
+}
