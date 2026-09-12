@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit"
   },
@@ -13,11 +13,14 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
     "express": "^5.2.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^26.4.1",
+    "prisma": "^7.10.0",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   }

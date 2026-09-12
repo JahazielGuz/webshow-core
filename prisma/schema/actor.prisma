@@ -1,0 +1,7 @@
+model Actor {
+  id String @id @default(uuid(7)) @db.Uuid
+  name String
+  profileUrl String?
+
+  movies Movie[]
+}
