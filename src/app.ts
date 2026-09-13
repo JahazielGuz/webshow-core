@@ -1,4 +1,6 @@
 import express from "express"
+import { notFound } from "./middleware/notFound.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
   const app = express();
@@ -8,6 +10,9 @@ export function createApp() {
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', uptime: process.uptime() })
   })
+
+  app.use(notFound);
+  app.use(errorHandler);
 
   return app;
 }
