@@ -1,4 +1,5 @@
 import express from "express"
+import { catalogueRoutes } from "./routes/catalogueRoutes.js";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -11,6 +12,10 @@ export function createApp() {
     res.json({ status: 'ok', uptime: process.uptime() })
   })
 
+  // custom routes
+  app.use(catalogueRoutes)
+
+  // error code middleware
   app.use(notFound);
   app.use(errorHandler);
 

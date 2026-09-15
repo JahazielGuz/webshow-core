@@ -4,7 +4,6 @@ import type { Genre, Movie, MovieSummary } from "../types/catalogue.js";
 const genreSelect = { id: true, name: true, slug: true };
 const movieSummarySelect = { id: true, title: true, posterUrl: true, releaseYear: true };
 
-
 export function listGenres(): Promise<Genre[]> {
   return prisma.genre.findMany({ select: genreSelect, orderBy: { name: "asc" }});
 }
