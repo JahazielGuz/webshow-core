@@ -10,4 +10,4 @@ export type Movie = MovieSummary & {
   runtime: number | null;
   genres: Genre[];
   cast: Actor[];
-}
+};
