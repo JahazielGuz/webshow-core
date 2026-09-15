@@ -12,18 +12,6 @@ export function createApp() {
     res.json({ status: "ok", uptime: process.uptime() });
   });
 
-  const dog = {
-    pita: {
-      yo: 3,
-      hg: 3,
-      jj: 5,
-      cj: 6,
-      pj: 7,
-      dfidofiod: "diofdif",
-      dksfjdkfjkdfjdjf: "dfdkfjdkfdofido",
-    },
-  };
-
   // custom routes
   app.use(catalogueRoutes);
 
