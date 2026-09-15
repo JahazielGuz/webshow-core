@@ -42,12 +42,14 @@ image now avoids swapping it later.
 
 ## Scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Hot-reloading server via `tsx`. Does not typecheck — the editor and `build` do that. |
-| `npm run build` | Typecheck and emit JavaScript to `dist/` |
-| `npm start` | Run the built output from `dist/` |
-| `npm run typecheck` | Typecheck without emitting |
+| Script                 | Purpose                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `npm run dev`          | Hot-reloading server via `tsx`. Does not typecheck — the editor and `build` do that. |
+| `npm run build`        | Typecheck and emit JavaScript to `dist/`                                             |
+| `npm start`            | Run the built output from `dist/`                                                    |
+| `npm run typecheck`    | Typecheck without emitting                                                           |
+| `npm run format`       | Format every file with Prettier                                                      |
+| `npm run format:check` | Fail if any file is not formatted (CI runs this)                                     |
 
 ## Conventions
 

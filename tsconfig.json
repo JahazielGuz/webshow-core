@@ -8,9 +8,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": [
-    "src/**/*.ts",
-    "prisma7.config.ts",
-    "prisma/**/*.ts"
-  ]
+  "include": ["src/**/*.ts", "prisma7.config.ts", "prisma/**/*.ts"]
 }

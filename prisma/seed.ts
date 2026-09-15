@@ -1,7 +1,7 @@
-import { prisma } from "../src/lib/prisma.js"
+import { prisma } from "../src/lib/prisma.js";
 
-const TMDB_BASE = "https://api.themoviedb.org/3"
-const IMAGE_BASE = "https://image.tmdb.org/t/p"
+const TMDB_BASE = "https://api.themoviedb.org/3";
+const IMAGE_BASE = "https://image.tmdb.org/t/p";
 const TMDB_MAX_PAGE = 500;
 
 const LISTS = ["upcoming", "now_playing", "popular"];
@@ -19,7 +19,7 @@ if (!token) {
   throw new Error("TMDB_READ_ACCESS_TOKEN is not set");
 }
 
-type TmdbGenre = { id: number; name: string }
+type TmdbGenre = { id: number; name: string };
 
 type TmdbListMovie = {
   id: number;
@@ -30,19 +30,19 @@ type TmdbListMovie = {
   backdrop_path: string | null;
   release_date: string;
   genre_ids: number[];
-}
+};
 
 type TmdbListPage = {
   total_pages: number;
   results: TmdbListMovie[];
-}
+};
 
 type TmdbCastMember = {
   id: number;
   name: string;
   profile_path: string | null;
   order: number;
-}
+};
 
 type TmdbMovie = {
   id: number;
@@ -56,7 +56,7 @@ type TmdbMovie = {
   popularity: number;
   genres: TmdbGenre[];
   credits: { cast: TmdbCastMember[] };
-}
+};
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -70,9 +70,9 @@ function createRateLimiter(requestsPerSecond: number) {
     nextSlot = slot + interval;
 
     if (slot > now) {
-      await sleep(slot - now)
+      await sleep(slot - now);
     }
-  }
+  };
 }
 
 const acquire = createRateLimiter(REQUESTS_PER_SECOND);
@@ -87,11 +87,11 @@ async function tmdbRequest<T>(
     url.searchParams.set(key, String(value));
   }
 
- for (let attempt = 1; ; attempt ++) {
+  for (let attempt = 1; ; attempt++) {
     await acquire();
 
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}`, accept: "application/json"},
+      headers: { Authorization: `Bearer ${token}`, accept: "application/json" },
     });
 
     if (res.ok) {
@@ -113,12 +113,12 @@ async function tmdbRequest<T>(
 function isDisplayable(movie: TmdbListMovie): boolean {
   return Boolean(
     !movie.adult &&
-      movie.title &&
-      movie.overview &&
-      movie.poster_path &&
-      movie.backdrop_path &&
-      movie.release_date &&
-      movie.genre_ids.length > 0,
+    movie.title &&
+    movie.overview &&
+    movie.poster_path &&
+    movie.backdrop_path &&
+    movie.release_date &&
+    movie.genre_ids.length > 0,
   );
 }
 
@@ -188,7 +188,10 @@ async function fetchMovies(ids: number[]): Promise<TmdbMovie[]> {
 }
 
 const slugify = (text: string) =>
-  text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
 async function writeCatalogue(genres: TmdbGenre[], movies: TmdbMovie[]) {
   const genreIds = new Map<number, string>();
