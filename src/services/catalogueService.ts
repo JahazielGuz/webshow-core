@@ -11,18 +11,31 @@ export function listGenres(): Promise<Genre[]> {
 export async function browse(): Promise<{ genre: Genre; movies: MovieSummary[] }[]> {
   const genres = await prisma.genre.findMany({
     where: { movies: { some: {} } },
-    select: {
-      ...genreSelect,
-      movies: {
-        select: movieSummarySelect,
-        orderBy: [{ popularity: "desc" }, { id: "asc" }],
-        take: 20,
-      },
-    },
+    select: genreSelect,
     orderBy: { name: "asc" },
   });
 
-  return genres.map(({ movies, ...genre }) => ({ genre, movies }));
+  const placed = new Set<string>();
+  const rows: { genre: Genre; movies: MovieSummary[] }[] = [];
+
+  for (const genre of genres) {
+    const movies = await prisma.movie.findMany({
+      where: { genres: { some: { id: genre.id } }, id: { notIn: [...placed] } },
+      select: movieSummarySelect,
+      orderBy: [{ popularity: "desc" }, { id: "asc" }],
+      take: 20,
+    });
+
+    for (const movie of movies) {
+      placed.add(movie.id);
+    }
+
+    if (movies.length > 0) {
+      rows.push({ genre, movies });
+    }
+  }
+
+  return rows;
 }
 
 export async function listMovies(genre: string | undefined, page: number, limit: number) {
@@ -50,6 +63,7 @@ export async function getMovie(id: string): Promise<Movie | null> {
       overview: true,
       backdropUrl: true,
       runtime: true,
+      trailerUrl: true,
       genres: { select: genreSelect, orderBy: { name: "asc" } },
       actors: { select: { id: true, name: true, profileUrl: true }, orderBy: { name: "asc" } },
     },

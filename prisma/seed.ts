@@ -44,6 +44,8 @@ type TmdbCastMember = {
   order: number;
 };
 
+type TmdbVideo = { site: string; type: string; key: string };
+
 type TmdbMovie = {
   id: number;
   title: string;
@@ -56,6 +58,7 @@ type TmdbMovie = {
   popularity: number;
   genres: TmdbGenre[];
   credits: { cast: TmdbCastMember[] };
+  videos: { results: TmdbVideo[] };
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -177,7 +180,7 @@ async function fetchMovies(ids: number[]): Promise<TmdbMovie[]> {
 
   const movies = await mapWithConcurrency(ids, CONCURRENCY, (id) =>
     tmdbRequest<TmdbMovie>(`/movie/${id}`, {
-      append_to_response: "credits",
+      append_to_response: "credits,videos",
       language: "en-US",
     }),
   );
@@ -225,6 +228,11 @@ async function writeCatalogue(genres: TmdbGenre[], movies: TmdbMovie[]) {
       actors.push({ id });
     }
 
+    const videos = movie.videos.results.filter((video) => video.site === "YouTube");
+    const trailer =
+      videos.find((video) => video.type === "Trailer") ??
+      videos.find((video) => video.type === "Teaser");
+
     await prisma.movie.create({
       data: {
         title: movie.title,
@@ -233,6 +241,7 @@ async function writeCatalogue(genres: TmdbGenre[], movies: TmdbMovie[]) {
         runtime: movie.runtime,
         posterUrl: `${IMAGE_BASE}/w500${movie.poster_path}`,
         backdropUrl: `${IMAGE_BASE}/w1280${movie.backdrop_path}`,
+        trailerUrl: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
         popularity: movie.popularity,
         genres: { connect: movie.genres.map((genre) => ({ id: genreIds.get(genre.id)! })) },
         actors: { connect: actors },
