@@ -8,6 +8,7 @@ export type Movie = MovieSummary & {
   overview: string;
   backdropUrl: string | null;
   runtime: number | null;
+  trailerUrl: string | null;
   genres: Genre[];
   cast: Actor[];
 };
