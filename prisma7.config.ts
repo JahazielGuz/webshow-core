@@ -2,7 +2,11 @@
 // npm install --save-dev prisma dotenv
 import { defineConfig } from "prisma/config";
 
-process.loadEnvFile();
+try {
+  process.loadEnvFile();
+} catch {
+  // no .env in the Docker build or in production — the environment is supplied directly
+}
 
 export default defineConfig({
   schema: "prisma/schema",

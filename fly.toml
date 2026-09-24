@@ -1,0 +1,27 @@
+app = "webshow-core"
+primary_region = "iad"
+
+[build]
+
+[env]
+  PORT = "3001"
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  auto_start_machines = true
+  auto_stop_machines = "suspend"
+  # 1 keeps a machine awake so the first visitor does not wait for a boot. 0 costs nothing.
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"
