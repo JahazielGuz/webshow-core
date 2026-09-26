@@ -1,0 +1,8 @@
+node_modules
+dist
+src/generated
+.git
+.env
+.env.*
+docker-compose.yml
+README.md
