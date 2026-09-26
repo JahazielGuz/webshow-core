@@ -6,7 +6,8 @@ import { HttpError } from "../lib/httpError.js";
 const moviesQuery = z.object({
   genre: z.string().optional(),
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(50).default(20),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  view: z.enum(["summary", "full"]).default("summary"),
 });
 
 const movieParams = z.object({
@@ -24,8 +25,13 @@ export async function browse(_req: Request, res: Response) {
 }
 
 export async function listMovies(req: Request, res: Response) {
-  const { genre, page, limit } = moviesQuery.parse(req.query);
-  const result = await catalogueService.listMovies(genre, page, limit);
+  const { genre, page, limit, view } = moviesQuery.parse(req.query);
+
+  const result =
+    view === "full"
+      ? await catalogueService.listFullMovies(genre, page, limit)
+      : await catalogueService.listMovies(genre, page, limit);
+
   res.json(result);
 }
 

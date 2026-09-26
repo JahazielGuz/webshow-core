@@ -1,8 +1,26 @@
+import { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
-import type { Genre, Movie, MovieSummary } from "../types/catalogue.js";
+import type { Actor, Genre, Movie, MovieSummary } from "../types/catalogue.js";
 
 const genreSelect = { id: true, name: true, slug: true };
 const movieSummarySelect = { id: true, title: true, posterUrl: true, releaseYear: true };
+
+// Everything a movie page or an embedding needs. `actors` is renamed to `cast` on the way out.
+const fullMovieSelect = {
+  ...movieSummarySelect,
+  overview: true,
+  backdropUrl: true,
+  runtime: true,
+  trailerUrl: true,
+  genres: { select: genreSelect, orderBy: { name: "asc" } },
+  actors: { select: { id: true, name: true, profileUrl: true }, orderBy: { name: "asc" } },
+  // `satisfies` checks this against Prisma's select type while keeping the literal "asc". A
+  // plain const widens it to string, and `as const` makes it readonly; Prisma rejects both.
+} satisfies Prisma.MovieSelect;
+
+function toMovie<T extends { actors: Actor[] }>({ actors, ...rest }: T) {
+  return { ...rest, cast: actors };
+}
 
 export function listGenres(): Promise<Genre[]> {
   return prisma.genre.findMany({ select: genreSelect, orderBy: { name: "asc" } });
@@ -55,24 +73,35 @@ export async function listMovies(genre: string | undefined, page: number, limit:
   return { items, page, limit, total, hasMore: page * limit < total };
 }
 
+// The same page, with everything a detail view or an embedding needs. A separate function
+// rather than a flag on the one above: a ternary select collapses both shapes into one union
+// that cannot be narrowed afterwards, because the type is decided before the flag is read.
+export async function listFullMovies(genre: string | undefined, page: number, limit: number) {
+  const where = genre ? { genres: { some: { slug: genre } } } : {};
+
+  const [rows, total] = await Promise.all([
+    prisma.movie.findMany({
+      where,
+      select: fullMovieSelect,
+      orderBy: [{ popularity: "desc" }, { id: "asc" }],
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.movie.count({ where }),
+  ]);
+
+  return { items: rows.map(toMovie), page, limit, total, hasMore: page * limit < total };
+}
+
 export async function getMovie(id: string): Promise<Movie | null> {
   const movie = await prisma.movie.findUnique({
     where: { id },
-    select: {
-      ...movieSummarySelect,
-      overview: true,
-      backdropUrl: true,
-      runtime: true,
-      trailerUrl: true,
-      genres: { select: genreSelect, orderBy: { name: "asc" } },
-      actors: { select: { id: true, name: true, profileUrl: true }, orderBy: { name: "asc" } },
-    },
+    select: fullMovieSelect,
   });
 
   if (!movie) {
     return null;
   }
 
-  const { actors, ...rest } = movie;
-  return { ...rest, cast: actors };
+  return toMovie(movie);
 }
