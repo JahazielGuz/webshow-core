@@ -1,0 +1,22 @@
+// Where a viewer got to in a film's trailer. One row per viewer per film, updated in place
+// rather than appended to: the question this answers is "where am I now", not "what happened".
+// An event log belongs with the async infrastructure slice, when something else needs to react.
+model WatchProgress {
+  id String @id @default(uuid(7)) @db.Uuid
+  positionSeconds Int
+  durationSeconds Int
+  // Set once the viewer passes the completion threshold, and never cleared by later progress.
+  // A film they finished should not reappear in Keep watching because they replayed ten seconds.
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movieId String @db.Uuid
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  // Keep watching reads one viewer's rows, most recently touched first
+  @@index([userId, updatedAt])
+}

@@ -12,4 +12,5 @@ model Movie {
 
   genres Genre[]
   actors Actor[]
+  watchProgress WatchProgress[]
 }
