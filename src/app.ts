@@ -1,6 +1,7 @@
 import express from "express";
 import { authRoutes } from "./routes/authRoutes.js";
 import { catalogueRoutes } from "./routes/catalogueRoutes.js";
+import { watchRoutes } from "./routes/watchRoutes.js";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -16,6 +17,7 @@ export function createApp() {
   // custom routes
   app.use(authRoutes);
   app.use(catalogueRoutes);
+  app.use(watchRoutes);
 
   // error code middleware
   app.use(notFound);

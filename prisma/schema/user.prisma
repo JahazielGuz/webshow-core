@@ -7,4 +7,5 @@ model User {
   updatedAt DateTime @updatedAt
 
   sessions Session[]
+  watchProgress WatchProgress[]
 }
