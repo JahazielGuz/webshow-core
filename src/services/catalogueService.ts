@@ -56,6 +56,33 @@ export async function browse(): Promise<{ genre: Genre; movies: MovieSummary[] }
   return rows;
 }
 
+// Films by id, returned in the order the ids were given. That order is a ranking the caller
+// computed, so losing it would throw away the only thing that made the list worth requesting.
+// Unknown ids are skipped rather than erroring: one stale id must not empty a row.
+export async function moviesByIds(ids: string[], view: "summary" | "full") {
+  if (ids.length === 0) {
+    return { items: [] };
+  }
+
+  if (view === "full") {
+    const rows = await prisma.movie.findMany({
+      where: { id: { in: ids } },
+      select: fullMovieSelect,
+    });
+    const byId = new Map(rows.map((row) => [row.id, toMovie(row)]));
+
+    return { items: ids.map((id) => byId.get(id)).filter((movie) => movie !== undefined) };
+  }
+
+  const rows = await prisma.movie.findMany({
+    where: { id: { in: ids } },
+    select: movieSummarySelect,
+  });
+  const byId = new Map(rows.map((row) => [row.id, row]));
+
+  return { items: ids.map((id) => byId.get(id)).filter((movie) => movie !== undefined) };
+}
+
 export async function listMovies(genre: string | undefined, page: number, limit: number) {
   const where = genre ? { genres: { some: { slug: genre } } } : {};
 

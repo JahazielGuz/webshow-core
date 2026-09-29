@@ -6,6 +6,10 @@ const movieParams = z.object({
   movieId: z.uuid(),
 });
 
+const progressQuery = z.object({
+  status: z.enum(["in-progress", "completed"]).default("in-progress"),
+});
+
 const progressBody = z.object({
   // Whole seconds: sub-second accuracy buys nothing and invites floating point drift in a bar
   positionSeconds: z.coerce.number().int().nonnegative().max(86_400),
@@ -22,8 +26,9 @@ export async function record(req: Request, res: Response) {
   res.status(204).end();
 }
 
-export async function keepWatching(_req: Request, res: Response) {
-  const items = await watchService.keepWatching(res.locals.userId);
+export async function listProgress(req: Request, res: Response) {
+  const { status } = progressQuery.parse(req.query);
+  const items = await watchService.listProgress(res.locals.userId, status);
   res.json({ items });
 }
 
