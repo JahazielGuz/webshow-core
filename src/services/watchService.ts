@@ -29,9 +29,16 @@ export async function record(
   });
 }
 
-export async function keepWatching(userId: string): Promise<WatchProgress[]> {
+export type WatchStatus = "in-progress" | "completed";
+
+// The two rows read opposite sides of the same flag: Keep watching wants what is unfinished,
+// and "Because you watched" wants what is done.
+export async function listProgress(userId: string, status: WatchStatus): Promise<WatchProgress[]> {
   const rows = await prisma.watchProgress.findMany({
-    where: { userId, completedAt: null, positionSeconds: { gte: MINIMUM_SECONDS } },
+    where:
+      status === "completed"
+        ? { userId, completedAt: { not: null } }
+        : { userId, completedAt: null, positionSeconds: { gte: MINIMUM_SECONDS } },
     select: {
       positionSeconds: true,
       durationSeconds: true,
