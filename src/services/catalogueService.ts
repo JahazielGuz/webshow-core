@@ -83,6 +83,72 @@ export async function moviesByIds(ids: string[], view: "summary" | "full") {
   return { items: ids.map((id) => byId.get(id)).filter((movie) => movie !== undefined) };
 }
 
+// Title, cast and genre, because those are the three things a person types into a search box.
+// One OR rather than three queries: the database is better at this than we are.
+const searchSelect = {
+  ...movieSummarySelect,
+  popularity: true,
+  actors: { select: { name: true } },
+} satisfies Prisma.MovieSelect;
+
+// Where a match happened decides how good it is. A film whose title is what you typed beats one
+// that merely contains it, which beats one that only shares an actor or a genre.
+function rank(movie: { title: string; actors: { name: string }[] }, needle: string): number {
+  const title = movie.title.toLowerCase();
+
+  if (title === needle) {
+    return 4;
+  }
+
+  if (title.startsWith(needle)) {
+    return 3;
+  }
+
+  if (title.includes(needle)) {
+    return 2;
+  }
+
+  if (movie.actors.some((actor) => actor.name.toLowerCase().includes(needle))) {
+    return 1;
+  }
+
+  return 0;
+}
+
+// Ranking happens here rather than in SQL because every match is already in memory: a substring
+// search over a thousand films cannot return more than a thousand rows. At a catalogue where it
+// could, this becomes a tsvector column and an ORDER BY ts_rank, and the shape stays the same.
+export async function searchMovies(query: string, limit: number) {
+  const needle = query.toLowerCase();
+  const rows = await prisma.movie.findMany({
+    where: {
+      OR: [
+        { title: { contains: needle, mode: "insensitive" } },
+        { actors: { some: { name: { contains: needle, mode: "insensitive" } } } },
+        { genres: { some: { name: { contains: needle, mode: "insensitive" } } } },
+      ],
+    },
+    select: searchSelect,
+  });
+
+  const ranked = rows
+    .map((row) => ({ row, score: rank(row, needle) }))
+    .sort(
+      (a, b) =>
+        b.score - a.score || b.row.popularity - a.row.popularity || a.row.id.localeCompare(b.row.id),
+    );
+
+  return {
+    items: ranked.slice(0, limit).map(({ row: { id, title, posterUrl, releaseYear } }) => ({
+      id,
+      title,
+      posterUrl,
+      releaseYear,
+    })),
+    total: rows.length,
+  };
+}
+
 export async function listMovies(genre: string | undefined, page: number, limit: number) {
   const where = genre ? { genres: { some: { slug: genre } } } : {};
 

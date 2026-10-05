@@ -1,6 +1,10 @@
 node_modules/
 dist/
 .env
+# Every other .env variant too: .env.fly and friends hold live secrets and are meant to be
+# deleted after use, which is exactly the kind of thing people forget
+.env.*
+!.env.example
 *.log
 /src/generated/prisma
 /.agents/
