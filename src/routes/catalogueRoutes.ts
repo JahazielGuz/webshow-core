@@ -5,5 +5,6 @@ export const catalogueRoutes = Router();
 
 catalogueRoutes.get("/genres", catalogueController.listGenres);
 catalogueRoutes.get("/browse", catalogueController.browse);
+catalogueRoutes.get("/search", catalogueController.search);
 catalogueRoutes.get("/movies", catalogueController.listMovies);
 catalogueRoutes.get("/movies/:id", catalogueController.getMovie);

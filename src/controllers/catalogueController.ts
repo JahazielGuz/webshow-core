@@ -23,6 +23,12 @@ const moviesQuery = z
     message: "ids cannot be combined with genre",
   });
 
+const searchQuery = z.object({
+  // The box is never submitted empty, so an empty q is a caller bug rather than "everything"
+  q: z.string().trim().min(1).max(100),
+  limit: z.coerce.number().int().positive().max(50).default(24),
+});
+
 const movieParams = z.object({
   id: z.uuid(),
 });
@@ -50,6 +56,13 @@ export async function listMovies(req: Request, res: Response) {
     view === "full"
       ? await catalogueService.listFullMovies(genre, page, limit)
       : await catalogueService.listMovies(genre, page, limit);
+
+  res.json(result);
+}
+
+export async function search(req: Request, res: Response) {
+  const { q, limit } = searchQuery.parse(req.query);
+  const result = await catalogueService.searchMovies(q, limit);
 
   res.json(result);
 }
